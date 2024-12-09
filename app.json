@@ -2,6 +2,7 @@
   "expo": {
     "name": "VIRLAB-MOBILE",
     "slug": "VIRLAB-MOBILE",
+    "owner": "kelas-king",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kasflaf.VIRLABMOBILE"
+      "package": "com.kelasking.VIRLABMOBILE"
     },
     "web": {
       "bundler": "metro",
