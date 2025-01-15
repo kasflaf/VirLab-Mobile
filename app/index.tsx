@@ -1,50 +1,85 @@
-// index.tsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { useRouter } from 'expo-router';
 
-const HomeScreen: React.FC = ({ navigation }: any) => {
+export default function HomeScreen() {
+  const router = useRouter();
   const [isNavOpen, setIsNavOpen] = useState(false);
-
-  const openNav = () => setIsNavOpen(true);
-  const closeNav = () => setIsNavOpen(false);
 
   return (
     <View style={styles.container}>
       {/* Top Navigation */}
       <View style={styles.topNav}>
         <Text style={styles.logo}>EngLab</Text>
-        <TouchableOpacity onPress={openNav}>
-          <Text style={styles.menuIcon}>&#9776;</Text>
+        <TouchableOpacity onPress={() => setIsNavOpen(true)}>
+          <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
       </View>
 
       {/* Side Navigation */}
       {isNavOpen && (
-        <View style={styles.sideNav}>
-          <TouchableOpacity onPress={closeNav}>
-            <Text style={styles.closeBtn}>&times;</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.navLink}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.navLink}>Sign Up</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')}>
-            <Text style={styles.navLink}>Leaderboard</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={styles.overlay}
+          onPress={() => setIsNavOpen(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.sideNav}>
+            <TouchableOpacity onPress={() => setIsNavOpen(false)}>
+              <Text style={styles.closeBtn}>×</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => {
+                setIsNavOpen(false);
+                router.push('/LoginScreen');
+              }}
+            >
+              <Text style={styles.navLink}>Login</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => {
+                setIsNavOpen(false);
+                router.push('/SignUpScreen');
+              }}
+            >
+              <Text style={styles.navLink}>Sign Up</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => {
+                setIsNavOpen(false);
+                router.push('/LeaderboardScreen');
+              }}
+            >
+              <Text style={styles.navLink}>Leaderboard</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => {
+                setIsNavOpen(false);
+                router.push('/QuizScreen');
+              }}
+            >
+              <Text style={styles.navLink}>Quiz</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       )}
+
+
+      <Button title="Go to Login" onPress={() => router.push('/LoginScreen')} />
+      <Button title="Go to Sign Up" onPress={() => router.push('/SignUpScreen')} />
+      <Button title="Go to Leaderboard" onPress={() => router.push('/LeaderboardScreen')} />
+      <Button title="Go to Quiz" onPress={() => router.push('/QuizScreen')} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
   },
   topNav: {
     flexDirection: 'row',
@@ -53,6 +88,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 15,
     backgroundColor: '#f8f8f8',
+    zIndex: 2, // Ensures the top navigation is above the side navigation
   },
   logo: {
     fontSize: 20,
@@ -60,6 +96,15 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     fontSize: 30,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+    zIndex: 1, // Ensure the overlay is below the top nav
   },
   sideNav: {
     position: 'absolute',
@@ -71,16 +116,16 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRightWidth: 1,
     borderRightColor: '#ddd',
+    zIndex: 2, // Ensures the side navigation is above the overlay
   },
   closeBtn: {
-    fontSize: 30,
-    textAlign: 'right',
+    fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 20,
   },
   navLink: {
     fontSize: 18,
     marginVertical: 10,
+    color: '#333',
   },
 });
-
-export default HomeScreen;

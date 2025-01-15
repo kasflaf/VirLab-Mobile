@@ -1,33 +1,33 @@
-// App.tsx
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './index';  // HomeScreen now comes from index.tsx
-import LeaderboardScreen from './LeaderboardScreen';
-import LoginScreen from './LoginScreen';
-import SignUpScreen from './SignUpScreen';
-import QuizScreen from './QuizScreen';
+import React, { useEffect } from "react";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 
-export type RootStackParamList = {
-  Home: undefined;
-  Leaderboard: undefined;
-  Login: undefined;
-  SignUp: undefined;
-  Quiz: undefined;
-};
+export default function Layout() {
+  useEffect(() => {
+    const prepare = async () => {
+      try {
+        // Keep the splash screen visible while we fetch resources
+        await SplashScreen.preventAutoHideAsync();
+        // Simulate a task (e.g., loading assets or data)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Hide the splash screen after the task is done
+        await SplashScreen.hideAsync();
+      }
+    };
 
-const Stack = createStackNavigator<RootStackParamList>();
+    prepare();
+  }, []);
 
-export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Quiz" component={QuizScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="signup" options={{ headerShown: false }} />
+      <Stack.Screen name="leaderboard" options={{ headerShown: false }} />
+      <Stack.Screen name="quiz" options={{ headerShown: false }} />
+    </Stack>
   );
 }

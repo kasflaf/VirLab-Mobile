@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { useRouter } from 'expo-router';
 
 type Question = {
   type: string;
@@ -9,32 +10,15 @@ type Question = {
 };
 
 const questions: Question[] = [
-  {
-    type: "fill-in-the-blank",
-    question: "The capital of France is _______.",
-    answer: "Paris",
-  },
-  {
-    type: "multiple-choice",
-    question: "Which planet is known as the Red Planet?",
-    options: ["Venus", "Mars", "Jupiter", "Saturn"],
-    answer: "Mars",
-  },
-  {
-    type: "fill-in-the-blank",
-    question: "Water boils at _______ degrees Celsius at sea level.",
-    answer: "100",
-  },
-  {
-    type: "multiple-choice",
-    question: "Who painted the Mona Lisa?",
-    options: ["Van Gogh", "Da Vinci", "Picasso", "Michelangelo"],
-    answer: "Da Vinci",
-  },
+  { type: 'fill-in-the-blank', question: 'The capital of France is _______.', answer: 'Paris' },
+  { type: 'multiple-choice', question: 'Which planet is known as the Red Planet?', options: ['Venus', 'Mars', 'Jupiter', 'Saturn'], answer: 'Mars' },
+  { type: 'fill-in-the-blank', question: 'Water boils at _______ degrees Celsius at sea level.', answer: '100' },
+  { type: 'multiple-choice', question: 'Who painted the Mona Lisa?', options: ['Van Gogh', 'Da Vinci', 'Picasso', 'Michelangelo'], answer: 'Da Vinci' },
 ];
 
-const QuizScreen: React.FC = () => {
+export default function QuizScreen() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const router = useRouter();
 
   const handleNext = () => {
     setCurrentQuestion((prev) => (prev + 1) % questions.length);
@@ -42,7 +26,7 @@ const QuizScreen: React.FC = () => {
 
   const renderQuestion = () => {
     const question = questions[currentQuestion];
-    if (question.type === "multiple-choice") {
+    if (question.type === 'multiple-choice') {
       return (
         <View>
           <Text style={styles.question}>{question.question}</Text>
@@ -69,9 +53,10 @@ const QuizScreen: React.FC = () => {
       <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
+      <Button title="Back to Home" onPress={() => router.push('/')} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -116,5 +101,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
-
-export default QuizScreen;
