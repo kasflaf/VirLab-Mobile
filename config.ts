@@ -1,5 +1,5 @@
 //config.ts
-const API_BASE_URL = 'http://kelas-king.site:4000';
+const API_BASE_URL = 'https://kelas-king.site';
 
 export const API_ENDPOINTS = {
   register: `${API_BASE_URL}/auth/register`,
