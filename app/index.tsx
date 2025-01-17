@@ -176,6 +176,7 @@ export default function HomeScreen() {
               { title: 'Sign Up', route: '/SignUpScreen', icon: '✍️' },
               { title: 'Leaderboard', route: '/LeaderboardScreen', icon: '🏆' },
               { title: 'Quiz', route: '/QuizScreen', icon: '📝' },
+              { title: 'Delete Account', route: '/DeleteAccountScreen', icon: '🗑️' },
             ].map((item, index) => (
               <TouchableOpacity 
                 key={index}
@@ -195,3 +196,4 @@ export default function HomeScreen() {
     </View>
   );
 }
+
