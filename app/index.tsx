@@ -1,8 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      setIsAuthenticated(!!token);
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+    }
+  };
+
+  const getNavItems = () => {
+    if (isAuthenticated) {
+      return [
+        { title: 'Leaderboard', route: '/LeaderboardScreen', icon: '🏆' },
+        { title: 'Quiz', route: '/QuizScreen', icon: '📝' },
+        { title: 'Delete Account', route: '/DeleteAccountScreen', icon: '🗑️' },
+        { 
+          title: 'Logout', 
+          route: '', 
+          icon: '🚪',
+          onPress: async () => {
+            await AsyncStorage.removeItem('userToken');
+            setIsAuthenticated(false);
+            setIsNavOpen(false);
+            router.push('/' as any);
+          }
+        },
+      ];
+    } else {
+      return [
+        { title: 'Login', route: '/LoginScreen', icon: '🔐' },
+        { title: 'Sign Up', route: '/SignUpScreen', icon: '✍️' },
+        { title: 'Leaderboard', route: '/LeaderboardScreen', icon: '🏆' },
+        { title: 'Quiz', route: '/QuizScreen', icon: '📝' },
+      ];
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.topNav}>
+        <Text style={styles.logo}>EngLab</Text>
+        <TouchableOpacity onPress={() => setIsNavOpen(true)}>
+          <Text style={styles.menuIcon}>☰</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.hero}>
+          <Text style={styles.heroTitle}>Welcome to EngLab</Text>
+          <Text style={styles.heroSubtitle}>Your Journey to English Mastery Starts Here</Text>
+        </View>
+
+        <View style={styles.features}>
+          <TouchableOpacity 
+            style={styles.featureCard} 
+            onPress={() => router.push('/QuizScreen' as any)}
+          >
+            <Text style={styles.featureIcon}>📝</Text>
+            <Text style={styles.featureTitle}>Take a Quiz</Text>
+            <Text style={styles.featureDescription}>Test your knowledge with our interactive quizzes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.featureCard}
+            onPress={() => router.push('/LeaderboardScreen' as any)}
+          >
+            <Text style={styles.featureIcon}>🏆</Text>
+            <Text style={styles.featureTitle}>Leaderboard</Text>
+            <Text style={styles.featureDescription}>Compare your progress with other learners</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {isNavOpen && (
+        <TouchableOpacity 
+          style={styles.overlay}
+          onPress={() => setIsNavOpen(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.sideNav}>
+            <TouchableOpacity style={styles.closeBtnContainer} onPress={() => setIsNavOpen(false)}>
+              <Text style={styles.closeBtn}>×</Text>
+            </TouchableOpacity>
+            
+            {getNavItems().map((item, index) => (
+              <TouchableOpacity 
+                key={index}
+                style={styles.navItem}
+                onPress={() => {
+                  if (item.onPress) {
+                    item.onPress();
+                  } else {
+                    setIsNavOpen(false);
+                    router.push(item.route as any);
+                  }
+                }}
+              >
+                <Text style={styles.navIcon}>{item.icon}</Text>
+                <Text style={styles.navLink}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -119,81 +237,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
-export default function HomeScreen() {
-  const router = useRouter();
-  const [isNavOpen, setIsNavOpen] = useState(false);
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.topNav}>
-        <Text style={styles.logo}>EngLab</Text>
-        <TouchableOpacity onPress={() => setIsNavOpen(true)}>
-          <Text style={styles.menuIcon}>☰</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Welcome to EngLab</Text>
-          <Text style={styles.heroSubtitle}>Your Journey to English Mastery Starts Here</Text>
-        </View>
-
-        <View style={styles.features}>
-          <TouchableOpacity 
-            style={styles.featureCard} 
-            onPress={() => router.push('/QuizScreen' as any)}
-          >
-            <Text style={styles.featureIcon}>📝</Text>
-            <Text style={styles.featureTitle}>Take a Quiz</Text>
-            <Text style={styles.featureDescription}>Test your knowledge with our interactive quizzes</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.featureCard}
-            onPress={() => router.push('/LeaderboardScreen' as any)}
-          >
-            <Text style={styles.featureIcon}>🏆</Text>
-            <Text style={styles.featureTitle}>Leaderboard</Text>
-            <Text style={styles.featureDescription}>Compare your progress with other learners</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {isNavOpen && (
-        <TouchableOpacity 
-          style={styles.overlay}
-          onPress={() => setIsNavOpen(false)}
-          activeOpacity={1}
-        >
-          <View style={styles.sideNav}>
-            <TouchableOpacity style={styles.closeBtnContainer} onPress={() => setIsNavOpen(false)}>
-              <Text style={styles.closeBtn}>×</Text>
-            </TouchableOpacity>
-            
-            {[
-              { title: 'Login', route: '/LoginScreen', icon: '🔐' },
-              { title: 'Sign Up', route: '/SignUpScreen', icon: '✍️' },
-              { title: 'Leaderboard', route: '/LeaderboardScreen', icon: '🏆' },
-              { title: 'Quiz', route: '/QuizScreen', icon: '📝' },
-              { title: 'Delete Account', route: '/DeleteAccountScreen', icon: '🗑️' },
-            ].map((item, index) => (
-              <TouchableOpacity 
-                key={index}
-                style={styles.navItem}
-                onPress={() => {
-                  setIsNavOpen(false);
-                  router.push(item.route as any);
-                }}
-              >
-                <Text style={styles.navIcon}>{item.icon}</Text>
-                <Text style={styles.navLink}>{item.title}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-

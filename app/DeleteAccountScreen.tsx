@@ -1,34 +1,61 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { API_ENDPOINTS, apiCall } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DeleteAccountScreen() {
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleDeleteAccount = () => {
-    // In a real app, you would verify the password and delete the account here
+  const handleDeleteAccount = async () => {
+    if (!password) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+  
     Alert.alert(
       "Confirm Account Deletion",
       "Are you sure you want to delete your account? This action cannot be undone.",
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
-        { 
-          text: "Delete", 
-          onPress: () => {
-            // Perform account deletion logic here
-            console.log("Account deleted");
-            router.push('/' as any);
+        {
+          text: "Delete",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const token = await AsyncStorage.getItem('userToken');
+              await apiCall(API_ENDPOINTS.deleteAccount, {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ password }),
+              });
+  
+              await AsyncStorage.removeItem('userToken');
+              Alert.alert('Success', 'Account deleted successfully', [
+                {
+                  text: 'OK',
+                  onPress: () => router.push('/' as any),
+                },
+              ]);
+            } catch (error) {
+              Alert.alert('Error', error instanceof Error ? error.message : 'Failed to delete account');
+            } finally {
+              setLoading(false);
+            }
           },
-          style: "destructive"
-        }
+          style: "destructive",
+        },
       ]
     );
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Delete Account</Text>
@@ -41,15 +68,24 @@ export default function DeleteAccountScreen() {
         value={password}
         onChangeText={setPassword}
       />
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
-        <Text style={styles.deleteButtonText}>Delete My Account</Text>
+      <TouchableOpacity 
+        style={[styles.deleteButton, loading && styles.disabledButton]} 
+        onPress={handleDeleteAccount}
+        disabled={loading}
+      >
+        <Text style={styles.deleteButtonText}>
+          {loading ? 'Deleting Account...' : 'Delete My Account'}
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
+      <TouchableOpacity 
+        style={styles.cancelButton} 
+        onPress={() => router.back()}
+      >
+  <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: {
@@ -78,6 +114,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 16,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   deleteButton: {
     backgroundColor: '#ff3b30',
@@ -85,6 +123,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#ffaaa7',
   },
   deleteButtonText: {
     color: '#fff',
@@ -99,4 +140,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-

@@ -1,19 +1,47 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { API_ENDPOINTS, apiCall } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignUpScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = () => {
-    // Implement sign up logic here
-    console.log('Sign up with:', name, email, password);
-    // For now, just navigate to home
-    router.push('/' as any);
-  };
+  const handleSignUp = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+  
+    setLoading(true);
+    try {
+      const response = await apiCall(API_ENDPOINTS.register, {
+        method: 'POST',
+        body: JSON.stringify({
+          username: name,
+          email,
+          password,
+        }),
+      });
+  
+      await AsyncStorage.setItem('userToken', response.token);
+  
+      Alert.alert('Success', response.message, [
+        {
+          text: 'OK',
+          onPress: () => router.push('/LoginScreen' as any),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
+  };  
 
   return (
     <KeyboardAvoidingView 
@@ -27,7 +55,7 @@ export default function SignUpScreen() {
         <View style={styles.inputContainer}>
           <TextInput 
             style={styles.input}
-            placeholder="Full Name"
+            placeholder="Username"
             placeholderTextColor="#666"
             value={name}
             onChangeText={setName}
@@ -51,8 +79,14 @@ export default function SignUpScreen() {
           />
         </View>
 
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-          <Text style={styles.signUpButtonText}>Sign Up</Text>
+        <TouchableOpacity 
+          style={[styles.signUpButton, loading && styles.disabledButton]} 
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          <Text style={styles.signUpButtonText}>
+            {loading ? 'Creating Account...' : 'Sign Up'}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.loginContainer}>
@@ -124,6 +158,9 @@ const styles = StyleSheet.create({
     padding: 15,
     width: '100%',
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#a0a0a0',
   },
   signUpButtonText: {
     color: 'white',

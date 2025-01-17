@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { API_ENDPOINTS, apiCall } from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Question = {
   id: string;
@@ -21,18 +23,11 @@ export default function QuizScreen() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleAnswer = (answer: string) => {
     setUserAnswers({ ...userAnswers, [questions[currentQuestion].id]: answer });
-  };
-
-  const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setShowResults(true);
-    }
   };
 
   const calculateScore = () => {
@@ -44,6 +39,43 @@ export default function QuizScreen() {
     });
     return score;
   };
+
+  const handleNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      handleQuizCompletion();
+    }
+  };
+
+  const handleQuizCompletion = async () => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        Alert.alert('Error', 'Please log in to save your score');
+        router.push('/LoginScreen' as any);
+        return;
+      }
+  
+      const score = calculateScore();
+      await apiCall(API_ENDPOINTS.updateScore, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_score: score,
+        }),
+      });
+  
+      setShowResults(true);
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to save score');
+    } finally {
+      setLoading(false);
+    }
+  };  
 
   const renderQuestion = () => {
     const question = questions[currentQuestion];
@@ -93,7 +125,10 @@ export default function QuizScreen() {
             <Text style={styles.resultCorrect}>Correct answer: {question.answer}</Text>
           </View>
         ))}
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/' as any)}>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={() => router.push('/' as any)}
+        >
           <Text style={styles.buttonText}>Back to Home</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -105,11 +140,12 @@ export default function QuizScreen() {
       <Text style={styles.progress}>Question {currentQuestion + 1} of {questions.length}</Text>
       {renderQuestion()}
       <TouchableOpacity 
-        style={styles.button} 
+        style={[styles.button, loading && styles.disabledButton]} 
         onPress={handleNext}
+        disabled={loading}
       >
         <Text style={styles.buttonText}>
-          {currentQuestion === questions.length - 1 ? 'Finish' : 'Next'}
+          {loading ? 'Saving...' : currentQuestion === questions.length - 1 ? 'Finish' : 'Next'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -169,6 +205,9 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  disabledButton: {
+    backgroundColor: '#a0a0a0',
+  },
   buttonText: {
     color: '#fff',
     fontSize: 18,
@@ -204,4 +243,3 @@ const styles = StyleSheet.create({
     color: '#4a90e2',
   },
 });
-
